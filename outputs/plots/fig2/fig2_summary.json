@@ -1,0 +1,22 @@
+{
+  "wide": {
+    "label": "Wider Network",
+    "target_edges": 38,
+    "threshold": 0.6875,
+    "num_nodes": 29,
+    "num_edges": 42,
+    "avg_degree": 2.897,
+    "density": 0.1034,
+    "kld": 0.001022
+  },
+  "dense": {
+    "label": "Dense Network",
+    "target_edges": 76,
+    "threshold": 0.5625,
+    "num_nodes": 29,
+    "num_edges": 75,
+    "avg_degree": 5.172,
+    "density": 0.1847,
+    "kld": 0.029808
+  }
+}

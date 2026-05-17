@@ -1,0 +1,4 @@
+Congestion,No Bipartite (kWh/100km),Bipartite (kWh/100km),Savings,DRL [22] (kWh/100km)
+25%,6.95,6.95,-0.00%,15.70
+50%,6.95,6.95,0.00%,15.70
+100%,4.00,6.95,-73.69%,15.70

@@ -1,0 +1,13 @@
+TABLE VII — Comparison of Different EV Routing Methods
+================================================================================
+  Method                        Energy                 Time  Notes
+--------------------------------------------------------------------------------
+  Clustering [28]                19.56                    —  Cannot adapt to new traffic
+  A* Search [29]                 18.60               ~1 min  Static graph; no real-time
+  Dijkstra [30]                  18.60               ~1 min  Static graph; no real-time
+  MILP [31]                      18.60              ~10 min  Not scalable
+  PSO [32]                       21.60              ~30 min  Suboptimal convergence
+  SARSA [33]                     36.80      ~2 hrs (500 ep)  High sample complexity
+  DRL [22]                       15.70     ~5 hrs (6000 ep)  Requires long training
+  Proposed Q-learning             6.95    ~3.5 hrs (10k ep)  Decentralised, real-time adaptive
+  Proposed PI-DDQN                5.88    ~10 min (1.5k ep)  Proportional-Integral target DDQN

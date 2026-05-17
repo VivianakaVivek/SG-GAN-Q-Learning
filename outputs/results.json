@@ -1,0 +1,16 @@
+{
+  "place": "Connaught Place, New Delhi, India",
+  "kld_final": 0.23233196489939348,
+  "graph_stats": {
+    "num_nodes": 29,
+    "num_edges": 38,
+    "avg_degree": 2.6206896551724137,
+    "density": 0.09359605911330049,
+    "num_components": 1,
+    "avg_clustering": 0.0
+  },
+  "generated": {
+    "num_nodes": 29,
+    "num_edges": 328
+  }
+}

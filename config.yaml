@@ -1,0 +1,71 @@
+# ============================================================
+# SG-GAN Configuration File
+# Parameters matched exactly to the base paper:
+#   "SG-GAN for Electric Vehicle Road Networks and
+#    Q-Learning in Energy Efficient Routing"
+# ============================================================
+
+map:
+  place_name: "Connaught Place, New Delhi, India"
+  # Connaught Place center coordinates (for point-based download)
+  use_point: true
+  lat: 28.6315
+  lon: 77.2167
+  radius_m: 800                   # Radius in metres around the center point
+  network_type: "drive"           # Options: drive, walk, bike, all
+  simplify: true
+
+graph:
+  max_nodes: 29                   # Paper uses 29 junction nodes (Table VIII)
+  default_speed_kph: 40           # Fallback speed if OSM doesn't provide one
+
+embedding:
+  method: "node2vec"              # Spatial graph embedding (Section III-A)
+  dim: 64                         # Embedding dimension k (Algorithm 1)
+  walk_length: 30
+  num_walks: 200
+  p: 1.0
+  q: 1.0
+  workers: 2
+  epochs: 10
+
+sggan:
+  hidden_dim: 128
+  output_dim: 64
+
+  # ── Paper-exact optimizer params (Section III-A, lines 203-206) ───────────
+  # "Optimization employs the Adam optimizer with α = 0.0002
+  #  (starting at α = 0.0001 for the first 50 iterations),
+  #  σ1 = 0.5, σ2 = 0.999, along with gradient clipping (max norm 5.0)
+  #  and batch normalization."
+  learning_rate: 0.0002           # Final LR after warmup (α)
+  lr_warmup: 0.0001               # LR for first 50 iterations
+  lr_warmup_iters: 50             # Switch LR after this many epochs
+  adam_beta1: 0.5                 # σ1
+  adam_beta2: 0.999               # σ2
+  grad_clip_norm: 5.0
+
+  # ── Paper-exact training schedule (Section VI, Fig. 3) ───────────────────
+  # "Upon convergence at iteration 200..."
+  epochs: 200
+  pretrain_epochs: 10             # "warm-up (upto 10 epochs)" (Section III-A)
+
+  g_steps: 3                      # Generator steps per node (more than D to balance training)
+  d_steps: 1                      # Discriminator steps per node per epoch
+  noise_dim: 64                   # Generator input noise dimension
+
+  # ── Discriminator sample sizes (Algorithm 1) ─────────────────────────────
+  # "size of generated samples s, size of discriminated samples t"
+  samples_per_node_g: 5           # s — fake samples G generates per node
+  samples_per_node_d: 5           # t — real + fake samples D trains on per node
+
+kld:
+  n_bins: 10
+  smoothing: 1.0e-8
+
+output:
+  save_dir: "outputs"
+  model_dir: "outputs/models"
+  plot_dir: "outputs/plots"
+  data_dir: "outputs/data"
+  log_interval: 25

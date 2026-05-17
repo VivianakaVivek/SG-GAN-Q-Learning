@@ -1,0 +1,16 @@
+TABLE I — Parameters Related to Energy Calculation
+=======================================================
+  η  (efficiency)                     0.9        dimensionless
+  ρ  (air density)                    1.225      kg/m³
+  Cd (drag coefficient)               0.3        dimensionless
+  A  (frontal area)                   2.2        m²
+  Cr (rolling resistance)             0.015      dimensionless
+  m  (vehicle mass)                   1500.0     kg
+  g  (gravity)                        9.81       m/s²
+  θ  (road incline)                   0.0        rad
+  v  (cruise speed)                   40.0       km/h
+  B_max (battery capacity)            10.0       kWh
+  Energy buffer                       2.5        kWh
+  η_s (charging rate)                 11.0       kW
+  C_j (charger capacity)              3          chargers/CS
+  λ  (EV arrival rate)                5.0        EVs/hour

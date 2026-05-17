@@ -1,0 +1,10 @@
+Method,Avg Energy (kWh/100km),Limitation,Convergence Time
+Clustering [28],19.56,Cannot adapt to new traffic,—
+A* Search [29],18.60,Static graph; no real-time,~1 min
+Dijkstra [30],18.60,Static graph; no real-time,~1 min
+MILP [31],18.60,Not scalable,~10 min
+PSO [32],21.60,Suboptimal convergence,~30 min
+SARSA [33],36.80,High sample complexity,~2 hrs (500 ep)
+DRL [22],15.70,Requires long training,~5 hrs (6000 ep)
+Proposed Q-learning,6.95,"Decentralised, real-time adaptive",~3.5 hrs (10k ep)
+Proposed PI-DDQN,5.88,Proportional-Integral target DDQN,~10 min (1.5k ep)

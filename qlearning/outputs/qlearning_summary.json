@@ -1,0 +1,50 @@
+{
+  "wide_network": {
+    "nodes": 29,
+    "edges": 42,
+    "cs_nodes": [
+      26,
+      19,
+      3,
+      4,
+      6,
+      8,
+      13
+    ],
+    "threshold": 0.6875,
+    "avg_energy_kWh_100km": 6.951132333270247
+  },
+  "dense_network": {
+    "nodes": 29,
+    "edges": 75,
+    "cs_nodes": [
+      23,
+      7,
+      17,
+      22,
+      26,
+      6,
+      11
+    ],
+    "threshold": 0.5625
+  },
+  "congestion_levels": [
+    25,
+    50,
+    100
+  ],
+  "qlearning_params": {
+    "alpha": 0.15,
+    "gamma": 0.9,
+    "epsilon": 1.0,
+    "epsilon_min": 0.01,
+    "epsilon_decay": 0.995,
+    "n_epochs": 10000,
+    "beta": 0.8,
+    "R_base": 1000.0,
+    "K_obj": 500.0,
+    "K_congestion": 200.0,
+    "K_bonus": 300.0
+  },
+  "runtime_s": 760.1
+}

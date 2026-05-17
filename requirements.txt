@@ -1,0 +1,10 @@
+osmnx
+torch
+scipy
+numpy
+matplotlib
+networkx
+node2vec
+scikit-learn
+pyyaml
+tqdm

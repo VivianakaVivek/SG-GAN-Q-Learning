@@ -1,0 +1,1018 @@
+IEEE TRANSACTIONS ON INTELLIGENT TRANSPORTATION SYSTEMS 1
+SG-GAN for Electric Vehicle Road Networks and
+Q-Learning in Energy Efficient Routing
+Suborno Kumar Das, Santi Prasad Maity
+ , and Chinmay Chakraborty
+ , Senior Member, IEEE
+Abstract— This paper suggests a novel routing scheme for
+multiple electric vehicles (EVs) on a mesh-type road network,
+which is generated using a Spatial Graph-Generative Adversarial
+Network (SG-GAN). The scheme focuses on optimizing both the
+routing of EVs and their association with the respective charging
+stations(CSs) to reduce energy consumption. The challenge lies
+in effectively managing factors such as travel cost, the state of
+charge (SoC) of the battery, and congestion in the road network.
+To address this problem, we propose a Reinforcement Learning
+(RL) based approach that minimizes energy consumption and
+the overall travel time for EVs to reach their destinations. A Q-
+learning algorithm for RL is employed to solve the nonlinear
+constrained optimization problems. Through simulation exper-
+iments on a road network evolved through SG-GAN, which
+generates realistic and complex network topologies, we address
+the allocation of CSs and EVs optimal routing. The results
+demonstrate the effectiveness of our approach compared to
+the existing methods, achieving a 2.68% reduction in energy
+consumption along with a similarity measure, on an average
+Kullback–Leibler (KL) distance (divergence) 0.54 in the SG-GAN
+generated road network from the reference real one.
+Index Terms— Spatial graph-GAN, Kullback-Leibler diver-
+gence, electric vehicle routing, charging station allocation,
+Q-learning, energy consumption, bipartite graph.
+I. I NTRODUCTION
+T
+HE transition
+to electric vehicles (EVs) marks a promis-
+ing and sustainable revolution in transportation. Unlike
+fossil fuel-dependent vehicles, EVs utilize highcapacity bat-
+teries and can be charged from renewable sources such as
+solar or wind, reducing pollutants and greenhouse gases.
+This shift is driven by environmental concerns, advancements
+in lithium-ion battery technology resulting in higher energy
+densities, longer ranges, and faster charging times [1] and
+supportive government policies alongside evolving consumer
+preferences. EVs are central to smart city development, yet
+challenges such as designing lightweight batteries, efficient
+power electronics, and optimized motor systems persist, all of
+which influence energy efficient (EE) routing. EE routing algo-
+rithms also depend on the availability and strategic placement
+Received 22 January 2025; revised 12 April 2025 and 29 May 2025;
+accepted 17 June 2025. The Associate Editor for this article was R. Jhaveri.
+(Corresponding author: Chinmay Chakraborty.)
+Suborno Kumar Das and Santi Prasad Maity are with the Information
+Technology Department, Indian Institute of Engineering Science and Technol-
+ogy at Shibpur, Howrah 711103, India (e-mail: dassuborno.clrs@gmail.com;
+santipmaity@it.iiests.ac.in).
+Chinmay Chakraborty is with the School of Electronics Engineering,
+Kalinga Institute of Industrial Technology (KIIT), Bhubaneswar 751024, India
+(e-mail: chinmay.chakrabortyfet@kiit.ac.in).
+Digital Object Identifier 10.1109/TITS.2025.3585310
+of Charging Stations (CS). Reducing energy consumption in
+EVs extends driving range, minimizes charging frequency,
+lowers overall ownership costs, and decreases environmental
+impact. This work addresses the EV routing problem by
+focusing on generating road networks for multiple EVs trav-
+eling from arbitrary source points to fixed destinations while
+accessing CS along the way.
+The rest of the paper is organized as follows: Section II
+presents a literature review. Section III presents a Spatial
+Graph-Generative Adversarial Network (SG-GAN) based road
+network Generation with embedded CS, and Section IV
+presents energy consumption, travel time, and congestion fac-
+tor calculations. EE-EV Routing and CS allocation discussion
+are made in Section V. Results and discussion are made in
+Section VI. Finally conclusion and future work are presented
+in Section VII.
+II. L ITERATURE REVIEW ON RELATED WORKS
+Literature review on intelligent transportation and EV
+infrastructure presents a diverse set of methodologies and
+algorithms addressing road network generation, EV charging
+optimization, routing decisions, and EV to CS allocation.
+For instance, [2] highlights that the increasing number of
+vehicles intensifies traffic congestion, air pollution, and energy
+consumption. Recent advances [3] address issues in spatial
+and topological modeling by combining transformer-based
+GANs with spatial and topological supervision, along with
+differentiable image-to-graph extractors, thereby improving
+metrics such as traffic convenience. Addressing missing data
+in real-time EV Charging Monitoring (EVCM) systems, [4]
+introduced the CurriFusFormer framework, that shows result
+of missing data rates from 30% to 90%, achieving R2 scores
+between 0.83 and 0.92. In parallel, optimal charging strate-
+gies for Distribution System Operators have been developed
+using Markov Decision Processes (MDP) and Reinforcement
+Learning (RL) [5]. An RL approach has also been applied
+to the dynamic EV routing problem to minimize energy
+consumption and prevent battery depletion [6]. Other contri-
+butions include Actor-Critic-based smart charging algorithms
+to mitigate EV charging impacts on power grids [7] and Deep
+Reinforcement Learning (DRL) approaches for the optimal
+route and CS selection under dynamic traffic conditions and
+uncertain future requests [8]. DRL-based approaches have
+minimized total travel time and charging costs [9], while
+multi-agent RL has been used for optimal energy scheduling
+1558-0016 © 2025 IEEE. All rights reserved, including rights for text and data mining, and training of artificial intelligence
+and similar technologies. Personal use is permitted, but republication/redistribution requires IEEE permission.
+See https://www.ieee.org/publications/rights/index.html for more information.
+This article has been accepted for inclusion in a future issue of this journal. Content is final as presented, with the exception of pagination. 
+Authorized licensed use limited to: Netaji Subhas University of Technology New Delhi. Downloaded on October 02,2025 at 01:12:13 UTC from IEEE Xplore.  Restrictions apply. 
+2 IEEE TRANSACTIONS ON INTELLIGENT TRANSPORTATION SYSTEMS
+at CSs, enhancing economic profits and user satisfaction [10].
+Complementary strategies include an RL-based EV assignment
+scheme (RLEV AS) designed to reduce charging costs and grid
+overload [11], and DRL methodologies for an optimal CS
+placement in urban areas that maximizes charging plan bene-
+fits [12]. Additionally, DRL has been employed for dynamic
+energy scheduling and routing of multiple EVs to lower energy
+costs [13], with multi-agent DRL approaches extending to EV
+charging scheduling in smart grids [14]. The green vehicle
+routing problem has been examined in [15], while efficient
+EV route planning using the Bellman-Ford algorithm on an
+embedded GPU is presented in [16]. Hierarchical and hybrid
+multi-agent RL approaches have been proposed to optimize
+EV flexibility services [17], and a bilevel graph RL method
+was developed for effective EV fleet charging guidance [18].
+An end-to-end RL-based routing method for electric logistics
+vehicles further demonstrates reduced energy consumption
+in [19]. Recent research extends to motion planning for EVs
+using RL to optimize both battery consumption and travel time
+efficiency [20].
+A. Scope and Contributions of the Work
+EV routing in smart cities faces challenges due to newly
+emerging dynamic road networks, fluctuating traffic condi-
+tions, and limited battery capacities [21], [22]. Motivated
+by [3], [6], [7], and [9], the present work integrate SG-GAN,
+Q-learning, and a bipartite graph method with contributions as
+follows:
+• We employ SG-GAN to generate a Generative AI-based
+dynamic and realistic road network, enabling EVs to
+navigate unknown and evolving road networks efficiently.
+With a KL Distance (Divergence) value of 0.54 [23], the
+generated network resembles closer to the reference real
+road network.
+• We develop a Q-learning algorithm, an RL-based method
+that optimizes travel time and energy consumption by
+dynamically learning from real-time traffic conditions
+using a priority-based optimization framework. This
+approach reduces energy consumption by 2.68% com-
+pared to the method in [22].
+• The present work also ensures seamless CS allocation
+using the concept of bipartite graph mapping, reducing
+range anxiety and improving EV mobility in smart cities.
+III. SG-GAN B ASED ROAD NETWORK GENERATION
+WITH EMBEDDED CS
+We propose an SG-GAN [2]-based architecture to synthe-
+size realistic road networks from OpenStreetMap (OSM) data,
+where road layouts, intersections, road types, and connectivity
+are encoded as a graph.
+Gr (Ve, Ed ), Ve = {v1, v2, . . . , vn}, Ed = {ei j},
+where edges are weighted by attributes such as distance, travel
+time, and congestion. Representation includes an adjacency
+matrix, an edge weight matrix, and a connectivity probability
+distribution.
+Fig. 1. Proposed SG-GAN architecture.
+A. Model Structure, Training and Connectivity Modeling
+The SG-GAN framework consists of a generator G and a
+discriminator D that engage in adversarial training. The gener-
+ator approximates the true conditional connectivity distribution
+ptrue(v | vc) for a given vertex vc, while the discriminator
+distinguishes real samples from those synthesized by G. Their
+training objective follows the minimax formulation [2]:
+min
+θG
+max
+θD
+L(G, D) =
+∑
+c
+Ev∼ptrue(·|vc)
+[
+log D(v, vc; θD)
+]
++ Ev∼G(·|vc;θG )
+[
+log
+(
+1 − D(v, vc; θD)
+)]
+.
+(1)
+Weights in both G and D are initialized using Xavier (Glorot)
+initialization as
+U ∼ X
+(
+− 6
+pin + pout
+, 6
+pin + pout
+)
+, bias = 0.
+Pre-training involves training G on a reconstruction task to
+learn an initial embedding of road network features and
+training D on a binary classification task (real vs. generated
+graph samples). This warm-up (upto 10 epochs) precedes
+full adversarial training. Optimization employs the Adam
+optimizer with α = 0.0002 (starting at α = 0.0001 for the
+first 50 iterations), σ1 = 0.5, σ2 = 0.999, along with gradient
+clipping (max norm 5.0) and batch normalization. To capture
+connectivity, a graph softmax function [2] is introduced:
+G(v | vc) =
+m∏
+j=1
+pc(vr j | vr j−1) · pc(vrm−1 | vrm ),
+where each vertex νn has neighbors M(νn) sampled from
+the conditional distribution ˜T (ν | νn). The SG-GAN frame
+work dynamically adapts road networks based on real-time
+conditions such as traffic fluctuations, roadwork, or obstacles.
+This makes it a powerful tool for adaptive urban planning and
+smart city development. Our proposed SG-GAN architecture
+is shown in Fig.1 and the SG-GAN-based road network
+generation algorithm is shown in Algorithm 1.
+B. KLD-Based Assessment of Generated Networks
+To quantitatively compare the generated and real road net-
+works, we employ the Kullback-Leibler (KL) divergence [23].
+For each edge (u, v), we compute the distance-to-time ratio
+Ruv as:
+Ruv = distanceuv
+timeuv
+. (2)
+This article has been accepted for inclusion in a future issue of this journal. Content is final as presented, with the exception of pagination. 
+Authorized licensed use limited to: Netaji Subhas University of Technology New Delhi. Downloaded on October 02,2025 at 01:12:13 UTC from IEEE Xplore.  Restrictions apply. 
+DAS et al.: SG-GAN FOR EV ROAD NETWORKS AND Q-LEARNING IN ENERGY EFFICIENT ROUTING 3
+The ratio is normalized to [0, 1] via min-max normalization
+as r ′
+uv:
+R′
+uv = Ruv − min(R)
+max(R) − min(R) . (3)
+Algorithm 1 SG-GAN for Road Network Generation
+Require: Dimension of embedding k, size of generated sam-
+ples s, size of discriminated samples t
+Ensure: Generator G(v|vc; θG), Discriminator D(v, vc; θD)
+1: Initialize and pre-train G(v|vc; θG) and D(v, vc; θD)
+2: Construct Breadth-First Search (BFS) tree Tc for all vc ∈
+V
+3: while SG-GAN has not converged do
+4: for each G-step do
+5: G(v|vc; θG) generates s vertices for each vertex vc
+6: Update θG by minimizing the generator loss
+7: end for
+8: for each D-step do
+9: Sample t positive vertices from the ground truth
+road network
+10: Sample t negative vertices from G(v|vc; θG) for
+each vertex vc
+11: Update θD by minimizing the discriminator loss
+12: end for
+13: end whilereturn G(v|vc; θG) and D(v, vc; θD)
+Let N be the number of intervals used for partitioning the
+normalized values. The total count of samples M is defined
+as
+M =
+N∑
+j=1
+n j , (4)
+where n j represents the number of occurrences in the j-th
+interval. Probability of the j-th interval is defined as
+p j = n j
+M . (5)
+The KL divergence is then given by
+DK L(p ∥ q) =
+N∑
+j=1
+P( j) log p( j)
+q( j) .
+where p is the probability distribution of a feature in a real
+road network and q is the probability distribution of a feature
+in a SG-GAN-generated road network.
+IV. C ALCULATION OF ENERGY CONSUMPTION , TRAVEL
+TIME AND CONGESTION FACTOR
+In the present routing problem, energy consumption ( Ec) is
+defined in the Eq.6 for the ith EV [24].
+Eci = 1
+η
+(1
+2 ρCd Av2 + Cr mgv + mgd sin θ
+)
+(6)
+where
+• η = Mechanical to electrical energy conversion efficiency
+• ρ = Air density (in kg/m 3)
+• Cd = Drag coefficient (aerodynamic resistance factor)
+• A = Frontal area of the vehicle (in m 2)
+• V = Velocity of the vehicle (in m/s)
+• Cr = Rolling resistance coefficient.
+• m = Mass of the vehicle (in kg)
+• g = Acceleration due to gravity (approximately
+9.81 m/s 2)
+• d = Distance
+• θ = Angle of incline (sin(θ ) accounts surface slope)
+Travel time ( Tc) defined in the Eq.7 for the ith EV as
+Tc = L
+λ + d
+V + Tcharge (7)
+where queueing delay ( W ) given by Little’s Law [25]:
+W = L
+λ (8)
+and charging time at each CS ( T s
+charge) given by:
+T s
+charge = Bmax − Bcurrent
+ηs
+∀ s ∈ CS
+• T s
+charge is the charging time at CS(in hours),
+• Bmax is the maximum SOC of the EV (in kWh),
+• Bcurrent is the current SOC upon arrival at the station (in
+kWh),
+• ηs is the charging rate at station s (in kW)
+Congestion factor for a road segment (i, j) is computed as
+δi j = qi j
+Ci j
+, (9)
+where qi j denotes the traffic flow (i.e., the number of vehi-
+cles per unit time on road segment (i, j)) is modeled as a
+Poisson-distributed random variable between 0 to Ci j where
+Ci j represents the maximum number of vehicles that the
+segment can accommodate per unit time. This ratio is normal-
+ized between 0%(minimal traffic flow) and 100% (complete
+congestion). Our framework measures local congestion, δi j,
+which reflects the congestion level on an individual road
+segment. This local metric supports fine-tuned, immediate
+routing decisions to avoid short-term bottlenecks. Conse-
+quently, a higher δi j value on a given segment prompts EV
+agents to dynamically adjust their routes, thereby enabling
+an adaptive response to both overall and localized traffic
+disturbances. Global congestion δ calculated using the Eq.10
+where wi j represents the weight on the road segment, assumed
+uniform.
+δ =
+∑
+(i, j) wi j δi j
+∑
+(i, j) wi j
+(10)
+Global congestion aggregates the congestion factors of all road
+segments across the network to provide an overall assessment
+of traffic density based on the positions and trajectories of all
+EV agents.
+A. Defining the Objective Function
+We consider the overall objective function O for n no.
+of EVs, formulated as a weighted sum of energy consumption
+This article has been accepted for inclusion in a future issue of this journal. Content is final as presented, with the exception of pagination. 
+Authorized licensed use limited to: Netaji Subhas University of Technology New Delhi. Downloaded on October 02,2025 at 01:12:13 UTC from IEEE Xplore.  Restrictions apply. 
+4 IEEE TRANSACTIONS ON INTELLIGENT TRANSPORTATION SYSTEMS
+and journey completion time. The objective function is given
+in the Eq.11.
+O = min
+n∑
+i=1
+(
+β Eci
+Enorm
++ (1 − β) Tci
+Tnorm
+)
+(11)
+where β ∈ [0, 1] is a dimensionless weighting factor that con-
+trols the trade-off between the two β = 1, energy minimization
+and β = 0 travel time minimization). Normalization factors
+Enorm and Tnorm, typically set to their maximum expected
+values, ensure that
+0 ≤ Eci
+Enorm
+, Tci
+Tnorm
+≤ 1,
+thereby scaling both terms comparably. The optimization is
+subject to the following constraints:
+N∑
+i=1
+ys j ≤ C j ∀ CS j ,
+where ys j ∈ {0, 1} indicates whether ith EV is charged at CS j,
+and C j represents the available charger count at station CS j.
+When this count reaches the capacity C j, additional EVs incur
+a queuing delay Wi.
+V. E NERGY EFFICIENT EV R OUTING AND CS
+ALLOCATION
+We propose a decentralized multi-agent Q-learning frame-
+work for routing EVs in a dynamic road network. Each EV
+operates as an independent agent, making routing and charging
+decisions based on its local observations solely while con-
+tributing to a global context by updating real-time congestion
+and CS mappings.
+A. Algorithmic Implementation
+1) Initialization: Each EV agent initializes its Q-table from
+arbitrary starting locations with zeros, selects an initial battery
+SOC from a continuous uniform distribution, and is assigned
+a fixed destination. A global set S records all visited nodes
+along the optimal paths, while a bipartite mapping Bi p dynam-
+ically associates high-traffic zones with nearby CSs. A global
+congestion parameter δ captures the evolving density of EVs
+across the network.
+2) State, Action, and Reward: Let the state s be the EV’s
+current position in the network and the action a is movement
+to a neighboring node or accessing a CS. The reward for the
+i th EV is defined as:
+Reward i = Rbase −
+[
+β Eci
+Enorm
++ (1 − β) Tci
+Tnorm
+]
+Kobj
+− δi j
+δnorm i j
+Kcongestion + Idest Kbonus, (12)
+where
+• Rbase: Base reward.
+• Kobj: Scaling factor for the weighted cost.
+• Kcongestion: Scaling factor for the congestion penalty.
+• Idest: Indicator (1 if destination is reached, 0 otherwise).
+• Kbonus: Bonus awarded upon reaching the destination.
+• δnorm : Maximum expected congestion for EV .
+Algorithm 2 Q-Learning for EV Routing and CS Allocation
+Input: SG-GAN generated Weighted Graph G(V, E) from
+Algorithm 1, α, γ , ϵ, θ
+Output: Set of optimal routes, cumulative energy
+consumption, total travel time
+1: Initialization:
+2: for each EV agent i ∈ {1, . . . ,l} do
+3: Initialize Q-table: Qi (s, a) ← 0 for s and a
+4: Set initial energy, SOC, and destination for agent i
+5: end for
+6: Initialize bipartite mapping Bi p ← ∅
+7: Initialize global visited node set S ← ∅
+8: Initialize global congestion δ w.r.t EV densities over G
+9: for all EV agents i in parallel do
+10: while agent i has not reached its destination do
+11: From current state s, select action a using an
+ϵ-greedy policy with Qi (s, a), considering current con-
+gestion from δ
+12: Execute action a; observe new state s′, energy
+consumption Eci , travel time Tci , local congestion factor
+δi j (from δ), and update battery SOC
+13: Compute reward function
+Reward i = Rbase −
+[
+β Eci
+Enorm
++ (1 − β) Tci
+Tnorm
+]
+Kobj
+− δi j
+δnorm i j
+Kcongestion + Idest Kbonus
+14:
+Qi (s, a) ← Qi (s, a)+α
+[
+Ri +γ max
+a′
+Qi (s′, a′)−Qi (s, a)
+]
+15: Add the newly visited node s′ to S
+16: Extract S′ from S, a subset of high-traffic nodes
+17: For each node v ∈ S′, dynamically map v to the
+nearest available CS using bipartite matching; update B
+18: if s′ and EV battery SOC < Thoffers multiple
+feasible CS options {C Sj } then
+19: for each available CS C Sj do
+20: Compute combined metric:
+C Sj = β · 1E j
+Enorm
++ (1 − β) · W j
+Wnorm
+21: end for
+22: Select C S∗ ← arg minj {C j }
+23: Update mapping B ← B ∪ {(s ′, C S∗)}
+24: end if
+25: Update δ global congestion.
+26: Set current state s ← s′
+27: end while
+28: end for
+29: return {Optimal Routes, Cumulative Energy Consump-
+tion, Total Travel Time}
+3) Learning Process and Q-Value Update: At each epoch,
+an EV agent observes its state s and selects an action a using
+This article has been accepted for inclusion in a future issue of this journal. Content is final as presented, with the exception of pagination. 
+Authorized licensed use limited to: Netaji Subhas University of Technology New Delhi. Downloaded on October 02,2025 at 01:12:13 UTC from IEEE Xplore.  Restrictions apply. 
+DAS et al.: SG-GAN FOR EV ROAD NETWORKS AND Q-LEARNING IN ENERGY EFFICIENT ROUTING 5
+an ϵ-greedy policy, which balances exploitation of learned
+Q-values and exploration of new routes while incorporating
+local congestion measures δi (derived from the global δ). After
+executing a, the agent transitions to a new state s′, updating
+its battery SOC and collecting data on energy consumption
+Eci , travel time Tci , and local congestion δi. The Q-values are
+updated according to:
+Qi (s, a) ← Qi (s, a)+α
+[
+Ri +γ max
+a′
+Qi (s′, a′)− Qi (s, a)
+]
+,
+(13)
+where α is the learning rate and γ is the discount factor. The
+optimal Q-value function and policy are defined as:
+Q∗(s, a) = max
+π
+Qπ (s, a), π∗(s) = arg max
+a
+Q∗(s, a). (14)
+Using ϵ-greedy policy [26], the EV selects the greedy action:
+a = arg max
+a∈A
+Qt (a), (15)
+The action selection probability is given by:
+πt (a) =
+
+
+
+1 − ϵ + ϵ
+|A| , if Qt (a) = max
+b∈A
+Qt (b),
+ϵ
+|A| , otherwise.
+(16)
+4) Charging Station Allocation via Bipartite Graph: A
+bipartite graph is employed to optimize CS allocation. Two
+disjoint sets are defined: S′, representing high-frequency inter-
+sections, and C S, consisting of CS locations generated by
+SG-GAN. Edge weights between S′ and C S are computed
+as:
+C Sj = β · 1E j
+1Enorm
++ (1 − β) · W j
+Wnorm
+, (17)
+where 1E j is the additional energy required to reach station
+j, W j is the expected queuing delay, and 1Enorm and Wnorm
+are normalization factors ensuring unitless metrics. When an
+EV at state s′ has multiple CS options and its battery SOC is
+below a threshold θ, the assignment is determined using the
+Hungarian algorithm [27]. Our proposed RL-based method for
+optimal routing and CS placement is shown in Algorithm 2.
+VI. R ESULTS AND DISCUSSION
+In our experiment, a mesh-like topology for road networks is
+generated by SG-GAN with the number of junctions nodes 29,
+and 7 CS nodes and 50 EVs. Simulations were implemented
+in Jupyter environment using Python, and the simulations
+were executed on a personal computer featuring an Apple M1
+Silicon Chip and 8 GB of RAM. Numerical values for the
+parameters are shown in Table I and hyperparameters to run
+the proposed scheme are shown in Table II.
+By modifying the distance and time parameters, two road
+networks using SG-GAN are shown in Fig.2(a) and (b),
+a wider and denser network, respectively. Each EV is initial-
+ized in the road network with a uniform 10 kWh battery and
+an initial state-of-charge (SOC) uniformly distributed between
+30% and 100%, averaging 65% with a standard deviation of
+20.2%. The algorithm computes optimal routes and reroutes
+EVs to the nearest CS when their SOC falls to a critical
+TABLE I
+PARAMETERS RELATED TO ENERGY CALCULATION
+TABLE II
+HYPERPARAMETERS OF THE PROPOSED STRATEGY
+Fig. 2. Two SG-GAN generated road networks with 22 junction nodes
+(blue color) and 7 CS (green color), Inclined path (yellow color) by changing
+parameters distance and time; (a) Wider network and (b) Dense network.
+threshold, ensuring a fixed energy buffer of 2.5 kWh in our
+experiment to prevent depletion. For a 10 kWh battery, this
+corresponds to a 25% SOC threshold. To maintain the same
+safety margin across varying battery sizes, the threshold is
+adjusted proportionally as 16.7% for 15 kWh, 12.5% for
+20 kWh, and 8.3% for 30 kWh. This prevents early rerouting
+while ensuring consistent energy reserves before charging.
+For the road network shown in Fig.2(a), Table III shows the
+different optimal paths with CS allocation for 5 EVs without
+using bipartite graph mapping. These paths are evaluated at
+different congestion levels (25%, 50%, and 100%), where
+100% represents the maximum number of EVs in the network,
+following a Poisson distribution with a mean arrival rate
+of 5 EVs. In our observation increase on energy consumption
+and travel times is found to be higher due to longer paths
+because there is no optimal mapping of EV to CS (EV
+randomly mapping to CS). When the bipartite graph is used,
+under 25% congestion, energy consumptions (kWh) for the
+EVs are found to be 4.66, 1.25, 4.46, 0.86, and 4.63, respec-
+tively. At 50% congestion, these values increase to 5.34, 1.33,
+5.13, 0.93, and 5.31 kWh. At 100% congestion, the values
+This article has been accepted for inclusion in a future issue of this journal. Content is final as presented, with the exception of pagination. 
+Authorized licensed use limited to: Netaji Subhas University of Technology New Delhi. Downloaded on October 02,2025 at 01:12:13 UTC from IEEE Xplore.  Restrictions apply. 
+6 IEEE TRANSACTIONS ON INTELLIGENT TRANSPORTATION SYSTEMS
+Fig. 3. Learning Curves (a) Accuracy for the Generator and Discriminator,
+(b) Cumulative Reward gained graph for 5 EVs.
+rise to 6.12, 1.42, 5.81, 0.99, and 6.10 kWh, respectively
+shown in Table IV. The average energy consumption without
+bipartite mapping is found 18.41 kWh/100 km, compared to
+15.64 kWh/100 km with bipartite graph mapping, showing
+a 15.05% savings in energy consumption. For the road net-
+work shown in Fig.2(b), we analyze the resulting changes in
+energy consumption and travel time for 5 EVs using bipartite
+mapping, which are presented in Table V. On average 37.6%
+more energy consumption and 2.26% more travel time needed
+at 50% congestion for road network in Fig. 2(b) compared to
+the road network in Fig.2(a) for EVs to reach their destination
+using the optimal paths beacuse road network in Fig.2(b)
+has a denser structure, As a result, frequent junctions and
+routing through many short segments and tight turns force
+repeated deceleration and re-acceleration. Each cycle incurs
+additional mechanical work and energy losses compared to
+steady cruising. Moreover, the dense network leads to higher
+local congestion, resulting in queues and idling delays, further
+increasing travel time.
+Now the training progression of SG-GAN is depicted in
+Fig.3(a). During the initial 50 iterations, generator accuracy
+fluctuates between 45% and 65%, while discriminator accu-
+racy ranges from 40% to 75% showing significant instability.
+By iteration 100, the generator reaches 82% (Â±3%) and the
+discriminator stabilizes at 85%. At iteration 150, the generator
+achieves 89% (Â±2%) and the discriminator 90%. Upon
+convergence at iteration 200, the generator stabilizes at 91%
+(Â±1%) and the discriminator at 93%, with a narrow 2%
+performance gap. Notably, after the 50th epoch, the generator
+improves at an average rate of 0.23% per iteration compared
+to the discriminator 0.18%, confirming robust convergence
+with exceeding 90% accuracy. Similarly Fig.3(b) shows the
+cumulative reward gained graph for 5 EVs, where reward
+increases steadily with the number of iterations, and stabi-
+lizes after 2000 iterations. Although the reward gained graph
+looks similar, the cumulative reward values are different. For
+example, the reward values of EV5, EV4, and EV2 (Group II)
+are much higher than EV1 and EV3 (Group I), possibly the
+better optimal possible paths availed by Group I than Group
+II, and due to the non-use of CS.
+Fig.4(a), shows a three-dimensional (3D) plot indicating the
+congestion factor, mean completion time, and mean energy
+consumption values, with each point corresponding to three
+parameters, A (100, 16.66, 404.57), B ((50, 15.64, 333.33), C
+((25, 13.83, 280.95). It is evident that an increase in congestion
+Fig. 4. (a) 3D plot of Congestion, Mean energy and Travel time, (b) Sensi-
+tivity analysis on β value.
+Fig. 5. For the different Network size (a) No.of EV vs Energy consumption
+(b) No.of EV vs Travel time.
+leads to higher energy consumption and takes more time
+to complete its journey. Point B seems to be a preferable
+operating point that balances among three factors over the
+points A and C.
+Fig.4(b) presents a sensitivity analysis of the weighting
+factor β. A low value (β = 0.1) prioritizes shorter travel times,
+while a high value (β = 0.9) emphasizes energy savings.
+Around β = 0.67, the two objectives are balanced, but since
+our focus is on energy efficiency, we select β = 0.8 to favor
+reduced energy consumption. We see in the plot that travel
+time is highly sensitive to β, so that small adjustments can
+changes in routing or speed, producing a significant time
+variability. In contrast, energy consumption responds more
+gradually, as efficiency gains follow smoother physical laws
+(moderate acceleration, steady speeds) and operate within
+the battery’s fixed capacity. Thus, energy optimization yields
+smooth transitions, whereas travel time can fluctuate sharply
+due to traffic dynamics and route changes.
+Fig.5(a) and Fig.5(b) show that as the number of EVs on the
+road increases, both energy consumption and travel time rise
+due to high congestion, longer queuing delays at CS, and the
+need for EVs to take alternative routes. However, larger road
+networks with a larger number of nodes and CS experience
+comparatively less congestion. These expansive networks can
+better accommodate the growing demand, resulting in lower
+energy consumption and reduced travel time.
+Table VII compares EV routing methods under comparable
+urban, battery-aware simulation conditions. Clustering histori-
+cal driving data [28] achieves an average energy consumption
+of 19.56 kWh/100 km, but cannot adapt to new traffic patterns.
+A* path search algorithm [29] and Dijkstra algorithm [30]
+achieve an average energy consumption of 18.6 kWh/100
+km by solving a static energy-cost graph in a single pass,
+yet they lack real-time adaptability to congestion or charging
+constraints. An Mixed-Integer Linear Programming (MILP)
+[31] formulation also achieves average energy consumption
+of 18.6 kWh/100 km, but at the expense of a solver runtime
+This article has been accepted for inclusion in a future issue of this journal. Content is final as presented, with the exception of pagination. 
+Authorized licensed use limited to: Netaji Subhas University of Technology New Delhi. Downloaded on October 02,2025 at 01:12:13 UTC from IEEE Xplore.  Restrictions apply. 
+DAS et al.: SG-GAN FOR EV ROAD NETWORKS AND Q-LEARNING IN ENERGY EFFICIENT ROUTING 7
+TABLE III
+OPTIMAL PATHS AT VARIOUS CONGESTION WITHOUT USING BIPARTITE GRAPH IN FIG.2(A)
+TABLE IV
+OPTIMAL PATHS AT VARIOUS CONGESTION USING BIPARTITE GRAPH IN FIG.2( A)
+TABLE V
+OPTIMAL PATHS AT VARIOUS CONGESTION USING BIPARTITE GRAPH IN FIG.2( B)
+TABLE VI
+COMPARISON OF ENERGY CONSUMPTION WITH RESPECT TO CONGESTION FACTOR (PROPOSED VS WORK [22] )
+TABLE VII
+COMPARISON OF DIFFERENT EV R OUTING METHODS
+of approximately ten minutes for moderate network sizes,
+limiting its scalability. While flexible in balancing multiple
+objectives, the Particle Swarm Optimization (PSO) [32] based
+heuristic approach consumes 21.6 kWh/100 km of energy and
+requires about 30 minutes for 100 iterations, often converging
+to suboptimal solutions when parameters are not finely tuned.
+Traditional RL method SARSA [33] reaches 36.8 kWh/100
+km and requires roughly two hours (500 epochs) to converge,
+illustrating high sample complexity and large state-space
+challenges. A DRL model [28] reduces energy consumption to
+15.7 kWh/100 km but demands around five hours of training
+(6,000 epochs) and careful hyperparameter tuning to ensure
+stability. Our proposed Q-learning approach improves it to
+15.64 kWh/100 km, converging in approximately 3.5 hours
+(10,000 epochs). This represents a marginal but meaningful
+0.36% reduction compared to DRL, achieved with fewer
+trainable parameters and lower computation overhead. Our
+Q-learning approach strikes an optimal balance, delivering
+This article has been accepted for inclusion in a future issue of this journal. Content is final as presented, with the exception of pagination. 
+Authorized licensed use limited to: Netaji Subhas University of Technology New Delhi. Downloaded on October 02,2025 at 01:12:13 UTC from IEEE Xplore.  Restrictions apply. 
+8 IEEE TRANSACTIONS ON INTELLIGENT TRANSPORTATION SYSTEMS
+the lowest energy consumption of all listed methods with a
+reasonable training time and limited complexity.
+Table VIII presents KL divergence values, measuring the
+difference between SG-GAN-generated and real-world maps
+of road networks. Higher values indicate more distance, while
+lower values indicate closer similarity. For 29 nodes, Graph
+1 shows the highest KL divergence (0.9824). In the 32-node
+case, divergence values are moderate. For 34 nodes, Graph
+3 has the smallest distance (0.1231), closely similar to real
+data. In the present work, both model training and testing
+were done on the same road network extracted from OSM.
+Crucially, SG-GAN does not simply replicate this reference
+road network; rather, it learns the underlying connectivity
+patterns and synthesizes entirely new road networks. We then
+employ KLD to compare the edge-feature distributions of
+these SG-GAN-generated road networks against the real one
+to provide a rigorous test of whether SG-GAN has truly
+generalized the real road network’s structural statistics rather
+than overfitting to specific routes. KLD value decreases during
+training, confirming that the generated layouts progressively
+converge to the real distribution. We adopt KLD to evalu-
+ate the similarity between the generated ones and the real
+road networks due to its sensitivity to global distributional
+discrepancies. Unlike Jensen–Shannon Divergence (JSD) [34],
+which is symmetric and bounded, and Graphlet/Motif Diver-
+gence [35] that captures only local subgraph mismatches,
+KLD asymmetrically penalizes distributional gaps, particularly
+when rare but important behaviors are underrepresented in
+the generated graphs. This makes it well-suited for evalu-
+ating edge-level distance-to-time ratio distributions in road
+networks. In Table IX, for a 29-node graph, KLD drops signifi-
+cantly from 0.9824 at 200 iterations to 0.6559 at 400 iterations,
+a 33.2% improvement. In contrast, JSD improves moderately
+from 0.5123 to 0.4685 (8.5%), and Graphlet Divergence
+from 0.2134 to 0.2082 (2.4%). This performance illustrates
+KLD’s superior sensitivity to global improvements during
+training.
+Table X shows a comparison where SG-GAN outperforms
+Graphormer on all four key metrics. In the case of KLD
+Score, SG-GAN achieves a 2.16 times lower value (0.67 vs.
+1.45), indicating that its generated road networks more closely
+resemble real-world structures. Regarding computational effi-
+ciency, SG-GAN trains 2.6 times faster (8.5 vs. 22.1 hours),
+converges with 30% fewer samples, and its inference speed
+is 8 times faster (15ms vs. 120ms) compared to Graphormer.
+In connectivity rate, SG-GAN achieves 92% valid connected
+graphs, whereas Graphormer only reaches 76%. Regarding
+average Graph Edit Distance (GED), SG-GAN records 180 ±
+20 edits whereas Graphormer records 450 ± 25 edits. This
+means SG-GAN requires 2.5 times fewer insertions/deletions
+to match the real graph compared to Graphormer, which
+demonstrates superior structural fidelity. This performance
+gap is primarily due to Graphormer’s global attention
+over-smoothing, which fails to capture essential topological
+rules.
+Finally, we conduct a performance comparison assessment.
+Numerical values are reported in the Table VI, with a 2.68%
+reduction in energy consumption compared to [22].
+TABLE VIII
+KL D ISTANCE FOR DIFFERENT SG-GAN G ENERATED GRAPH FOR DIF-
+FERENT ITERATION VS REAL GRAPH
+TABLE IX
+DIVERGENCE MEASURES BETWEEN GENERATED AND REAL GRAPHS
+USING DIFFERENT METHODS (29 N ODES )
+TABLE X
+PERFORMANCE COMPARISON BETWEEN SG-GAN AND GRAPHORMER
+A. Computational Overhead and Performance
+The computational complexity of SG-GAN and Q-Learning
+for EV routing and CS allocation is summarized in Table XI.
+• I : Number of training iterations
+• |Ve|: Number of nodes in the road network
+• b′: Samples per node in SG-GAN’s generator step
+• z′: Positive/negative samples per node in SG-GAN’s
+discriminator step
+• FG: Computational cost per generator forward pass
+• FD: Computational cost per discriminator forward pass
+• |Ed |: Number of edges in the road graph
+• PG, PD: Number of parameters in the generator and
+discriminator
+• q, z: Temporary storage for generated samples and dis-
+criminator inputs
+• n: Number of EV agents
+• |A|: Q-learning action space size
+• s′: High-traffic nodes in Q-learning (with bipartite match-
+ing cost O(s′3))
+• C S: Number of CS
+• |s|: State-space size for each agent’s Q-table
+SG-GAN primarily focuses on graph-based learning,
+requiring Breadth-First Search (BFS) tree construction and
+iterative generator-discriminator training, while the pro-
+posed Q-Learning models multi-agent decision-making with
+high-dimensional state-action spaces. The training time for
+SG-GAN depends on the number of iterations and the size
+of the network. In each training iteration, every node in
+the network undergoes a series of generator and discrimina-
+tor operations. Although some operations (like constructing
+complete BFS trees) could, in the worst case, incur high
+computational costs, these are typically executed only on
+demand or updated incrementally, and also SG-GAN Offline
+This article has been accepted for inclusion in a future issue of this journal. Content is final as presented, with the exception of pagination. 
+Authorized licensed use limited to: Netaji Subhas University of Technology New Delhi. Downloaded on October 02,2025 at 01:12:13 UTC from IEEE Xplore.  Restrictions apply. 
+DAS et al.: SG-GAN FOR EV ROAD NETWORKS AND Q-LEARNING IN ENERGY EFFICIENT ROUTING 9
+TABLE XI
+COMPUTATIONAL COMPLEXITY
+Fig. 6. Changes in Computational time by scaling road networks and No.
+of EVs (a) Training time for SG-GAN, (b) Training time for Q-Learning,
+(c) Inference time for graph generation using SG-GAN.
+pre-training keeps the overall computational overhead within
+practical limits. For the present Q-Learning algorithm used
+in EV routing and CS allocation, the computational load
+increases with the number of EV agents, the size of their
+action space, and the number of nodes in the road network.
+Additionally, the algorithm handles extra tasks such as match-
+ing high-traffic nodes, which introduces further overhead.
+However, in parallel execution on our neural engine-based
+CPU, the algorithm ensures that the time required per iteration
+remains efficient, even as the problem size grows.
+Fig.6(a) shows a 3D plot of SG-GAN training time with
+the following points: A (29 nodes, 50 EVs, 8.5 hrs), B (50
+nodes, 100 EVs, 13.6 hrs), C (100 nodes, 150 EVs, 19.9 hrs),
+and D (150 nodes, 200 EVs, 22.9 hrs). The training time
+increases nearly quadratically with |Ve| due to the dominant
+O(|Ve|2) term, while the impact of increasing EVs is less
+severe. Fig.6(b) presents the proposed Q-learning training time
+with points: A (29 nodes, 50 EVs, 3.5 hrs), B (50 nodes,
+100 EVs, 11.7 hrs), C (100 nodes, 150 EVs, 37.2 hrs), and D
+(150 nodes, 200 EVs, 76.2 hrs). The effect of |Ve|, with larger
+networks is its increases the global state space, scanning cost,
+and connectivity management and even though the increase in
+EVs adds overhead, larger networks can accommodate this.
+Fig.6(c) depicts SG-GAN inference time for graph generation
+with points: A (29, 50, 8.5 sec), B (50, 100, 15 sec), C (100,
+150, 71.9 sec), and D (150, 200, 117.6 sec). So in the present
+work, the scalability challenges for larger road networks can
+be addressed.
+VII. C ONCLUSION AND FUTURE WORKS
+In conclusion, the present work proposes an SG-GAN-based
+road network development followed by a Q-learning-based
+decision-making strategy, thus effectively optimizing energy
+consumption in conjunction with enhancing EV routing and
+CS allocation performance. Representing the road network as
+a weighted graph, EVs navigate to fixed destinations while
+avoiding congestion and utilizing CS assigned via a bipartite
+graph approach. The solution achieves a 2.68% reduction in
+energy consumption and 0.97% KL distance in the generated
+road networks from the reference real one. Future work will
+integrate the proposed method and the work reported in [37]
+to leverage lightweight transformer-based collision detection
+and load estimation schemes, leading to improved routing
+reliability in scalable road networks under high-access loads.
+REFERENCES
+[1] A. M. Al-Ghaili, H. Kasim, H. Aris, and N. M. Al-Hada, “Can electric
+vehicles be an alternative for traditional fossil-fuel cars with the help of
+renewable energy sources towards energy sustainability achievement?”
+Energy Informat., vol. 5, no. S4, p. 60, Dec. 2022.
+[2] H. Wang et al., “GraphGAN: Graph representation learning with gener-
+ative adversarial nets,” in Proc. 32nd AAAI Conf. Artif. Intell., vol. 32,
+no. 1, 2018, pp. 2508–2515.
+[3] T. Li et al., “CRTGAN: Controllable road network graphs generation
+via transformer based GAN,” in Proc. Int. Joint Conf. Neural Netw.
+(IJCNN), Jun. 2024, pp. 1–8.
+[4] D. Li et al., “Toward resilient electric vehicle charging monitoring
+systems: Curriculum guided multi-feature fusion transformer,” IEEE
+Trans. Intell. Transp. Syst., vol. 25, no. 12, pp. 21356–21366, Dec. 2024.
+[5] T. Ding, Z. Zeng, J. Bai, B. Qin, Y . Yang, and M. Shahidehpour, “Opti-
+mal electric vehicle charging strategy with Markov decision process and
+reinforcement learning technique,”IEEE Trans. Ind. Appl., vol. 56, no. 5,
+pp. 5811–5823, Sep. 2020.
+[6] R. Basso, B. Kulcsár, I. Sanchez-Diaz, and X. Qu, “Dynamic stochas-
+tic electric vehicle routing with safe reinforcement learning,” Transp.
+Res. E, Logistics Transp. Rev., vol. 157, Jan. 2022, Art. no. 102496.
+[7] Y . Cao, H. Wang, D. Li, and G. Zhang, “Smart online charging algorithm
+for electric vehicles via customized actor–critic learning,” IEEE Internet
+Things J., vol. 9, no. 1, pp. 684–694, Jan. 2022.
+[8] K.-B. Lee, M. A. Ahmed, D.-K. Kang, and Y .-C. Kim, “Deep rein-
+forcement learning based optimal route and charging station selection,”
+Energies, vol. 13, no. 23, p. 6255, Nov. 2020.
+[9] T. Qian, C. Shao, X. Wang, and M. Shahidehpour, “Deep reinforcement
+learning for EV charging navigation by coordinating smart grid and
+intelligent transportation system,” IEEE Trans. Smart Grid, vol. 11,
+no. 2, pp. 1714–1723, Mar. 2020.
+[10] W. Zhang et al., “Intelligent electric vehicle charging recommenda-
+tion based on multi-agent reinforcement learning,” IEEE Trans. Intell.
+Transp. Syst., vol. 24, no. 3, pp. 1769–1780, Mar. 2023.
+[11] M. Aljaidi, N. Aslam, X. Chen, O. Kaiwartya, Y . A. Al-Gumaei, and
+M. Khalid, “A reinforcement learning-based assignment scheme for EVs
+to charging stations,” IEEE Trans. Intell. Transp. Syst., vol. 23, no. 1,
+pp. 362–372, Jan. 2022.
+[12] L. von Wahl, N. Tempelmeier, A. Sao, and E. Demidova, “Rein-
+forcement learning-based placement of charging stations in urban road
+networks,” Energies, vol. 16, no. 2, pp. 3992–4000, Aug. 2022.
+[13] M. Alqahtani and M. Hu, “Dynamic energy scheduling and routing of
+multiple electric vehicles using deep reinforcement learning,” Energy,
+vol. 244, Apr. 2022, Art. no. 122626.
+[14] K. Park and I. Moon, “Multi-agent deep reinforcement learning approach
+for EV charging scheduling in a smart grid,” Appl. Energy, vol. 328,
+Dec. 2022, Art. no. 120111.
+[15] G. Macrina, G. Laporte, F. Guerriero, and L. Di Puglia Pugliese,
+“An energy-efficient green-vehicle routing problem with mixed vehicle
+fleet, partial battery recharging and time windows,” Eur. J. Oper. Res.,
+vol. 276, no. 3, pp. 971–982, Aug. 2019.
+[16] A. Schambers, M. Eavis-O’Quinn, V . Roberge, and M. Tarbouchi,
+“Route planning for electric vehicle efficiency using the bellman-ford
+algorithm on an embedded GPU,” J. Energy Eng., vol. 149, no. 2, 2023,
+Art. no. 04023016.
+This article has been accepted for inclusion in a future issue of this journal. Content is final as presented, with the exception of pagination. 
+Authorized licensed use limited to: Netaji Subhas University of Technology New Delhi. Downloaded on October 02,2025 at 01:12:13 UTC from IEEE Xplore.  Restrictions apply. 
+10 IEEE TRANSACTIONS ON INTELLIGENT TRANSPORTATION SYSTEMS
+[17] D. Qiu, Y . Wang, M. Sun, and G. Strbac, “Multi-service provision for
+electric vehicles in power-transportation networks towards a low-carbon
+transition: A hierarchical and hybrid multi-agent reinforcement learning
+approach,” Appl. Energy, vol. 313, May 2022, Art. no. 118790.
+[18] Q. Xing, Y . Xu, and Z. Chen, “A bilevel graph reinforcement learning
+method for electric vehicle fleet charging guidance,” IEEE Trans. Smart
+Grid, vol. 18, no. 4, pp. 3004–3011, Jul. 2022.
+[19] M. Tang, B. Li, H. Liu, W. Zhuang, Z. Li, and J. Peng, “Energy-oriented
+routing strategy of electric vehicle: An end-to-end reinforcement learn-
+ing approach,” IEEE Trans. Intell. Transp. Syst., vol. 24, no. 2,
+pp. 746–759, Feb. 2023.
+[20] H. Soni, V . Gupta, and R. Kumar, “Motion planning using reinforcement
+learning for electric vehicle battery optimization,” Sustain. Cities Soc.,
+vol. 78, Jan. 2022, Art. no. 103165.
+[21] N. Mardeši ´c, T. Erdeli´c, T. Cari´c, and M. Ðurasevi´c, “Review of stochas-
+tic dynamic vehicle routing in the evolving urban logistics environment,”
+Mathematics, vol. 12, no. 1, p. 28, Dec. 2023.
+[22] J. Wu, Z. Song, and C. Lv, “Deep reinforcement learning based energy-
+efficient decision-making for autonomous electric vehicle in dynamic
+traffic environments,” IEEE Trans. Transport. Electrific., vol. 10, no. 1,
+pp. 875–887, Jan. 2024.
+[23] S. Kullback and R. A. Leibler, “On information and sufficiency,” Ann.
+Math. Statist., vol. 22, no. 1, pp. 79–86, 1951.
+[24] A. Agrawal et al., “Mathematical modeling of driving forces of
+an electric vehicle for sustainable operation,” IEEE Access, vol. 11,
+pp. 95278–95294, 2023.
+[25] D. Cross and C. M. Harris, Fundamentals of Queuing Theory. Hoboken,
+NJ, USA: Wiley, 1998.
+[26] R. S. Sutton and A. Barto, Reinforcement Learning: An Introduction,
+vol. 16. Cambridge, MA, USA: MIT Press, 2005, pp. 285–286.
+[27] H. W. Kuhn, “The Hungarian method for the assignment problem,” Nav.
+Res. Logistics Quart., vol. 2, pp. 83–97, Mar. 1955.
+[28] A. M. Bozorgi, M. Farasat, and A. Mahmoud, “A time and energy
+efficient routing algorithm for electric vehicles based on historical
+driving data,” IEEE Trans. Intell. Veh., vol. 2, no. 4, pp. 308–320,
+Dec. 2017.
+[29] D. L. Wang, A. Ding, G. L. Chen, and L. Zhang, “A combined genetic
+algorithm and A* search algorithm for the electric vehicle routing
+problem with time windows,” Adv. Prod. Eng. Manage., vol. 18, no. 4,
+pp. 403–416, Dec. 2023.
+[30] S. Kirono, M. I. Arifianto, R. E. Putra, A. Musoleh, and R. Setiadi,
+“Graph-based modeling and Dijkstra algorithm for searching vehicle
+routes on highways,” Int. J. Mech. Eng. Technol., vol. 9, pp. 1273–1280,
+Jan. 2018.
+[31] M. L. Menéndez, J. A. Pardo, L. Pardo, and M. C. Pardo, “The Jensen–
+Shannon divergence,” J. Franklin Inst., vol. 334, no. 2, pp. 307–318,
+1997.
+[32] A. G. Garcia, L. A. R. Tria, and M. C. R. Talampas, “Development
+of an energy-efficient routing algorithm for electric vehicles,” in Proc.
+IEEE Transp. Electrific. Conf. Expo (ITEC), Jun. 2019, pp. 1–5.
+[33] T. M. Aljohani and O. Mohammed, “A real-time energy consump-
+tion minimization framework for electric vehicles routing optimization
+based on SARSA reinforcement learning,” Vehicles, vol. 4, no. 4,
+pp. 1176–1194, Oct. 2022.
+[34] M. Menéndez, J. Pardo, L. Pardo, and M. Pardo, “The Jensen–Shannon
+divergence,” J. Franklin Inst., vol. 334, no. 2, pp. 307–318, 1997.
+[35] Z. Zhang, D. Chen, L. Bai, J. Wang, and E. R. Hancock, “Graph motif
+entropy for understanding time-evolving networks,” IEEE Trans. Neural
+Netw. Learn. Syst., vol. 34, no. 4, pp. 1651–1665, Apr. 2023.
+[36] C. Ying et al., “Do transformers really perform badly for graph repre-
+sentation,” in Proc. Adv. Neural Inf. Process. Syst., vol. 34, Dec. 2021,
+pp. 28877–28888.
+[37] L. Zhen, M. Li, C. Chakraborty, J. Jiang, A. Polavarapu, and F.
+Alqahtani, “A lightweight transformer-based collision detection and load
+estimation scheme for massive random access in 6G satellite-ground
+integrated vehicular networks,” IEEE Trans. Intell. Transp. Syst., early
+access, Jan. 20, 2025, doi: 10.1109/TITS.2025.3527073.
+Suborno Kumar Das is currently pursuing the
+Ph.D. degree in information technology with Indian
+Institute of Engineering Science and Technology at
+Shibpur. His research interests include generative
+AI and reinforcement learning in energy-efficient
+applications.
+Santi Prasad Maity is currently working as a
+Professor with the Department of Information Tech-
+nology, Indian Institute of Engineering Science and
+Technology at Shibpur. His research interests include
+cognitive radio networks, digital image watermark-
+ing and secret sharing, compressed sensing for image
+reconstruction and disease diagnosis, CAD-based
+diabetic retinopathy grading, reinforcement learning
+for spectrum prediction, RIS-assisted D2D commu-
+nication, and optimal charging station placement in
+EV systems.
+Chinmay Chakraborty (Senior Member, IEEE) is
+currently working as an Associate Professor with the
+School of Electronics Engineering, Kalinga Institute
+of Industrial Technology (KIIT), India. His main
+research interests include the internet of medical
+things (IoMT), AI/ML, communication and com-
+puting, telemedicine, m-health/e-health, and medical
+imaging.
+This article has been accepted for inclusion in a future issue of this journal. Content is final as presented, with the exception of pagination. 
+Authorized licensed use limited to: Netaji Subhas University of Technology New Delhi. Downloaded on October 02,2025 at 01:12:13 UTC from IEEE Xplore.  Restrictions apply. 

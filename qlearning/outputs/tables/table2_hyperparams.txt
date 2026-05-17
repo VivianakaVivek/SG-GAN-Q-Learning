@@ -1,0 +1,16 @@
+TABLE II — Hyperparameters of the Proposed Strategy
+==================================================
+  α  (learning rate)                     0.15
+  γ  (discount factor)                   0.9
+  ε  (initial exploration)               1.0
+  ε_min                                  0.01
+  ε decay                                0.995
+  N epochs                               10000
+  β  (energy/time weight)                0.8
+  R_base                                 1000.0
+  K_obj                                  500.0
+  K_congestion                           200.0
+  K_bonus                                300.0
+  No. of EVs (experiment)                5
+  No. of EVs (total fleet)               50
+  No. of CS nodes                        7
